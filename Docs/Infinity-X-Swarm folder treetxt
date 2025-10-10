@@ -1,0 +1,62 @@
+Infinity-X-Swarm/
+├── HQ/
+│   ├── api/                    # FastAPI (or similar) HQ services
+│   │   ├── main.py
+│   │   ├── routes/
+│   │   │   ├── orchestrator.py
+│   │   │   ├── ledger.py
+│   │   │   ├── agents.py
+│   │   │   ├── deploy.py
+│   │   │   └── health.py
+│   ├── core/
+│   │   ├── supabase_client.py
+│   │   ├── gcloud_client.py
+│   │   ├── pubsub.py
+│   │   ├── scheduler.py        # builds 15-min slot plans + EV gate
+│   │   └── finance.py
+│   ├── db/
+│   │   ├── schema.sql
+│   │   ├── migrations/
+│   │   └── init_supabase.sh
+│   ├── ops/
+│   │   ├── replicate_sat.sh
+│   │   ├── rotate_env.sh
+│   │   └── auto_heal_cron.sh
+│   ├── docker/Dockerfile
+│   └── README.md
+│
+├── GPT-Gateway/
+│   ├── app/
+│   │   ├── main.py              # /bridge, /faucet/drip, /git/push, /healthz
+│   │   ├── routes/
+│   │   └── clients/             # vercel/git/gcloud/supabase clients
+│   ├── openapi/openapi.full.json
+│   ├── docker/Dockerfile
+│   └── README.md
+│
+├── Satellites/
+│   ├── Sat-01/
+│   │   ├── app/
+│   │   │   ├── main.py          # worker runtime entry
+│   │   │   ├── agents/          # harvester, scout, guardian, tuner, watcher
+│   │   │   └── routes/          # local REST admin: /agent/report /faucet/drip
+│   │   ├── config/              # .env.template, faucets.json, wallets.json
+│   │   ├── docker/Dockerfile
+│   │   └── scripts/
+│   │       ├── start.sh
+│   │       └── self_heal.sh
+│   └── Sat-0n/ ...             # template copy for replication
+│
+├── UI/                         # Next.js dashboard (Vercel)
+├── memory/                     # Rosetta vector tooling
+│   ├── ingest.py
+│   ├── hydrate.py
+│   └── sql/pgvector_init.sql
+├── scripts/
+│   ├── deploy_swarm_cloud.sh   # orchestration to build/push/deploy everything
+│   ├── smoke_test.sh
+│   └── replicate_satellite.sh
+└── docs/
+    ├── architecture.md
+    ├── operational_runbook.md
+    └── security_policy.md

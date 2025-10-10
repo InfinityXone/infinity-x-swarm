@@ -1,0 +1,18 @@
+POST /bridge                # send job from GPT → HQ
+GET  /healthz              # system health
+POST /faucet/drip          # request drip (satellite/harvester)
+POST /wallet/create        # create shadow wallet
+POST /wallet/rotate        # rotate wallet pool
+POST /wallet/distribute    # distribute wallets to satellites
+GET  /wallets              # list wallets + status
+POST /agent/register       # satellite registration to HQ
+GET  /agent/status         # get agent telemetry
+POST /jobs/queue           # HQ queue job (creates Cloud Task)
+POST /pubsub/publish       # publish job to Pub/Sub topic
+GET  /logs/tail            # tail logs from Supabase/GCS
+POST /supabase/query       # run DB query (restricted)
+POST /memory/store         # store vector embedding
+POST /memory/search        # semantic search (kNN)
+POST /deploy/cloudrun      # deploy container to Cloud Run
+POST /deploy/vercel        # deploy front end
+POST /gpt/push-code        # GPT → GitHub push

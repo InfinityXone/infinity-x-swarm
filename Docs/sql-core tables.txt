@@ -1,0 +1,83 @@
+-- faucets
+CREATE TABLE faucets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  label text,
+  api_url text,
+  chain text,
+  enabled boolean DEFAULT true,
+  rate_limit_per_min int DEFAULT 1000,
+  auth_token text,
+  last_checked timestamptz
+);
+
+-- wallets
+CREATE TABLE wallets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  address text,
+  encrypted_key text,    -- AES/GCP KMS encrypted
+  chain text,
+  status text DEFAULT 'active',
+  rotation_interval int DEFAULT 86400, -- seconds
+  last_rotated timestamptz
+);
+
+-- satellites
+CREATE TABLE satellites (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text UNIQUE,
+  region text,
+  url text,
+  status text,
+  agent_version text,
+  last_ping timestamptz
+);
+
+-- jobs
+CREATE TABLE jobs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  type text,
+  payload jsonb,
+  status text DEFAULT 'queued',
+  satellite_id uuid REFERENCES satellites(id),
+  created_at timestamptz DEFAULT now(),
+  dispatched_at timestamptz,
+  completed_at timestamptz
+);
+
+-- logs
+CREATE TABLE logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  source text,
+  level text,
+  message text,
+  ctx jsonb,
+  ts timestamptz DEFAULT now()
+);
+
+-- memory vectors (Rosetta)
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TABLE memory_vectors (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_id text,
+  context text,
+  embedding vector(1536),
+  created_at timestamptz DEFAULT now()
+);
+
+-- secrets mirror (encrypted)
+CREATE TABLE secrets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  key_name text,
+  encrypted_value text,
+  updated_at timestamptz DEFAULT now()
+);
+
+-- ledger (profits)
+CREATE TABLE profit_ledger (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  satellite_id uuid,
+  revenue numeric,
+  cost numeric,
+  net numeric,
+  ts timestamptz DEFAULT now()
+);
