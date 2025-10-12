@@ -1,3 +1,25 @@
 
 # Ignore environment config
 config/.env
+
+# builds / deps
+.next/
+node_modules/
+dist/
+build/
+coverage/
+
+# logs & noise
+*.log
+nohup.out
+
+# local env
+.env
+.env.*
+!.env.example
+
+# archives & big blobs
+*.zip
+*.tar
+*.tar.gz
+*.tgz
