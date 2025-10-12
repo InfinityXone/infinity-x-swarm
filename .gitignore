@@ -23,3 +23,25 @@ nohup.out
 *.tar
 *.tar.gz
 *.tgz
+
+# builds / deps
+.next/
+node_modules/
+dist/
+build/
+coverage/
+
+# logs & noise
+*.log
+nohup.out
+
+# local env
+.env
+.env.*
+!.env.example
+
+# archives & big blobs
+*.zip
+*.tar
+*.tar.gz
+*.tgz
