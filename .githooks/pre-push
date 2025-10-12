@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-limit=$((10*1024*1024))
+limit=$((10*1024*1024))  # 10 MiB
 while read -r local_ref local_sha remote_ref remote_sha; do
   if [[ "$remote_sha" =~ ^0+$ ]]; then
     new_files=$(git ls-tree -r --name-only "$local_sha" || true)
