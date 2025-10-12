@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+mapfile -t files < <(git diff --cached --name-only --diff-filter=ACMR)
+[ ${#files[@]} -eq 0 ] && exit 0
+bad=""
+for f in "${files[@]}"; do
+  [[ "$f" =~ \.(zip|tar|tgz|tar\.gz)$ ]] && bad+="$f"$'\n'
+  [[ "$f" == .next/* || "$f" == node_modules/* ]] && bad+="$f"$'\n'
+done
+for f in "${files[@]}"; do
+  [[ "$f" =~ ^ops/_legacy/ ]] && continue
+  [[ "$f" =~ ^\.githooks/ ]] && continue
+  [[ -f "$f" && ! -L "$f" ]] && grep -q '/mnt/data' "$f" && bad+="$f"$'\n' || true
+done
+if [ -n "$bad" ]; then
+  echo "Refusing commit. Problem files:" >&2
+  echo "$bad" | sed '/^$/d' >&2
+  echo "Fix: add to .gitignore, move to ops/_legacy, or replace /mnt/data with \${DATA_ROOT}." >&2
+  exit 1
+fi

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+limit=$((10*1024*1024))
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ "$remote_sha" =~ ^0+$ ]]; then
+    new_files=$(git ls-tree -r --name-only "$local_sha" || true)
+  else
+    range="${remote_sha}..${local_sha}"
+    new_files=$(git diff --name-only --diff-filter=A "$range" || true)
+  fi
+  while read -r f; do
+    [ -n "${f:-}" ] || continue
+    [ -f "$f" ] || continue
+    size=$(wc -c < "$f")
+    if [ "$size" -ge "$limit" ]; then
+      echo "Refusing push: $f is $(numfmt --to=iec "$size"), exceeds 10MiB." >&2
+      exit 1
+    fi
+    if [[ "$f" =~ \.(zip|tar|tgz|tar\.gz)$ ]]; then
+      echo "Refusing push: new archive detected ($f)." >&2
+      exit 1
+    fi
+  done <<< "$new_files"
+done
