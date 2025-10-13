@@ -35,12 +35,14 @@ export default async function Dashboard() {
         </section>
 
         <section className="grid xl:grid-cols-3 gap-4" id="agents">
+          {/* Client-side chart */}
+          {/* @ts-ignore */}
           <ThroughputPanel data={metrics?.rate || []} />
           <div className="card p-4">
             <div className="text-white text-lg font-semibold mb-3">Alerts</div>
             <div className="space-y-2 text-white/80">
               {(metrics?.alerts || []).length === 0 && <div className="text-white/60">No active alerts.</div>}
-              {(metrics?.alerts || []).map((a, i) => (
+              {(metrics?.alerts || []).map((a: any, i: number) => (
                 <div key={i} className={`text-sm ${a.level === "error" ? "text-red-300" : "text-yellow-200"}`}>• {a.msg}</div>
               ))}
             </div>
