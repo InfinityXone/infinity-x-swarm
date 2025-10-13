@@ -1,47 +1,30 @@
-
-# Ignore environment config
-config/.env
-
-# builds / deps
-.next/
+# --- node / next ---
 node_modules/
-dist/
-build/
-coverage/
-
-# logs & noise
+.next/
+out/
 *.log
-nohup.out
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+package-lock.json
+# keep lockfile if you want reproducible builds; remove this line to keep it
 
-# local env
+# --- env / secrets ---
 .env
 .env.*
 !.env.example
+.vercel/
+.vercel/cache/
 
-# archives & big blobs
-*.zip
-*.tar
-*.tar.gz
-*.tgz
+# --- python ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# builds / deps
-.next/
-node_modules/
-dist/
-build/
-coverage/
-
-# logs & noise
-*.log
-nohup.out
-
-# local env
-.env
-.env.*
-!.env.example
-
-# archives & big blobs
-*.zip
-*.tar
-*.tar.gz
-*.tgz
+# --- misc ---
+.DS_Store
+*.swp
+*.swo
