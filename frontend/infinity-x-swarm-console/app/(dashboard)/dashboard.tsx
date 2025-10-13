@@ -1,12 +1,10 @@
 import Sidebar from "@/components/Sidebar";
 import StatCard from "@/components/StatCard";
 import ServiceCard from "@/components/ServiceCard";
-import dynamic from "next/dynamic";
 import { fetchJSON } from "@/lib/api";
 import { Metrics, Service } from "@/lib/types";
 import ChatPanel from "@/components/ChatPanel";
-
-const ThroughputChart = dynamic(() => import("@/components/charts/ThroughputChart"), { ssr: false });
+import ThroughputPanel from "@/components/panels/ThroughputPanel";
 
 async function loadServerData() {
   const [metrics, services] = await Promise.all([
@@ -37,10 +35,7 @@ export default async function Dashboard() {
         </section>
 
         <section className="grid xl:grid-cols-3 gap-4" id="agents">
-          <div className="xl:col-span-2 card p-4">
-            <div className="text-white text-lg font-semibold mb-3">Throughput (claims/min)</div>
-            <ThroughputChart data={metrics?.rate || []} />
-          </div>
+          <ThroughputPanel data={metrics?.rate || []} />
           <div className="card p-4">
             <div className="text-white text-lg font-semibold mb-3">Alerts</div>
             <div className="space-y-2 text-white/80">
