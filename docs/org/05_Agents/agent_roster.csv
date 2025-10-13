@@ -1,0 +1,4 @@
+agent_id,name,class,owner,status,primary_repo,service_url,notes
+A-0001,Codex Prime,Orchestrator,Neo Pulse,active,InfinityXone/codex-prime,,
+S-0101,Satellite-01,Hunter,Ops,active,InfinityXone/infinity-x-swarm,,
+G-0001,GPT Gateway,GW,Ops,active,InfinityXone/genesis,,

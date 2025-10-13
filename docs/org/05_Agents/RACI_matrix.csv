@@ -1,0 +1,5 @@
+activity,Responsible,Accountable,Consulted,Informed
+Cloud Run deploy,Ops Lead,CTO,Security,All
+Memory rehydrate,Data Eng,CTO,Platform,All
+Incident response,Oncall,CTO,All,All
+Secrets rotation,Security,CTO,Ops,All
