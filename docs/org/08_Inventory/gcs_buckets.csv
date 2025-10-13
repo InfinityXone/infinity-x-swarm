@@ -1,0 +1,6 @@
+bucket,region,purpose,retention_policy
+infinity-agent-artifacts,US,,
+infinity-swarm-system,US,,
+my-project-52092gpt-deployer_cloudbuild,US,,
+run-sources-my-project-52092gpt-deployer-us-west1,US-WEST1,,
+swarm-seeds-my-project-52092gpt-deployer,US-EAST1,,

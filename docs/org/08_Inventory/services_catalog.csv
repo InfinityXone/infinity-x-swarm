@@ -1,0 +1,4 @@
+service,owner,repo,deploy_method,env_file,notes
+codex-prime,Ops,InfinityXone/codex-prime,cloudrun,.env.runtime,
+gpt-gateway,Ops,InfinityXone/genesis,cloudrun,.env.runtime,
+satellite-01,Ops,InfinityXone/infinity-x-swarm,cloudrun,.env.runtime,

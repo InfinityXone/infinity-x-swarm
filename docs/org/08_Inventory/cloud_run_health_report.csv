@@ -1,0 +1,15 @@
+service,region,url,status,code
+codex-hq,us-east1,https://codex-hq-nsdj5qz7mq-ue.a.run.app,down,404
+codex-prime,us-east1,https://codex-prime-nsdj5qz7mq-ue.a.run.app,down,404
+credwallet,us-east1,https://credwallet-nsdj5qz7mq-ue.a.run.app,down,404
+infinity-x-swarm,us-east1,https://infinity-x-swarm-nsdj5qz7mq-ue.a.run.app,down,404
+orchestrator,us-east1,https://orchestrator-nsdj5qz7mq-ue.a.run.app,down,404
+satellite-01,us-east1,https://satellite-01-nsdj5qz7mq-ue.a.run.app,down,404
+gpt-gateway,us-west1,https://gpt-gateway-nsdj5qz7mq-uw.a.run.app,down,404
+indexer,us-west1,https://indexer-nsdj5qz7mq-uw.a.run.app,down,404
+ledger,us-west1,https://ledger-nsdj5qz7mq-uw.a.run.app,down,404
+monitor,us-west1,https://monitor-nsdj5qz7mq-uw.a.run.app,down,404
+notifier,us-west1,https://notifier-nsdj5qz7mq-uw.a.run.app,down,404
+orchestrator,us-west1,https://orchestrator-nsdj5qz7mq-uw.a.run.app,down,404
+scheduler,us-west1,https://scheduler-nsdj5qz7mq-uw.a.run.app,down,404
+wallet,us-west1,https://wallet-nsdj5qz7mq-uw.a.run.app,down,404
