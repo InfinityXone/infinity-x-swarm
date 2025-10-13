@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+.env.* 
+*.log
+
+# Node/Playwright cache (if used)
+node_modules/
+playwright/.cache/
+
+# Build artifacts
+dist/
+build/
+*.tar.gz
+
+# Editor/OS
+.DS_Store
+.vscode/
+.idea/
+
+# Cloud
+.gcloudignore
