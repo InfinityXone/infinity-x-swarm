@@ -1,0 +1,9 @@
+scope,variable,local,cloud_run,supabase,vercel,notes
+runtime,PROJECT_ID,✔,✔,,,
+runtime,DEFAULT_REGION,✔,✔,,,
+supabase,SUPABASE_URL,✔,✔,✔,,
+supabase,SUPABASE_SERVICE_ROLE_KEY,,✔,✔,,
+gateway,GATEWAY_URL,✔,✔,,✔,
+gateway,GATEWAY_JWT_SECRET,,✔,,,
+actions,ACTIONS_BEARER_TOKENS,,✔,,,
+observability,LOG_SINK,✔,✔,,,

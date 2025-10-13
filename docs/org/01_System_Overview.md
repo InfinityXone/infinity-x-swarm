@@ -1,0 +1,12 @@
+# System Overview (Fill this)
+- **Project Name:** my-project-52092gpt-deployer
+- **Regions:** us-east1, us-west1
+- **Primary Components:**
+  - Cloud Run: codex-prime, gpt-gateway, satellite-01, ...
+  - Supabase: URL, project ref, key tables (agents, logs, memory, profit_ledger)
+  - Buckets: infinity-agent-artifacts, infinity-swarm-system, ...
+  - Repos: InfinityXone/genesis, InfinityXone/infinity-x-swarm, ...
+  - Vercel: Infinity X Swarm Console (frontend)
+- **Data Flow:** [diagram or description]
+- **SLOs / SLIs:** latency, availability, error budget
+- **Cost Guardrails:** daily/weekly caps, alert channels

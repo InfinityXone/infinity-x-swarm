@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: Echo Genesis Gateway
+  version: "2025-10-13"
+servers:
+  - url: https://GATEWAY_URL
+paths:
+  /healthz:
+    get:
+      operationId: healthz
+      responses:
+        "200": { description: ok }
+  /memory/status:
+    get:
+      operationId: memoryStatus
+      responses:
+        "200": { description: ok }

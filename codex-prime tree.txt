@@ -1,0 +1,23 @@
+codex-prime/
+├── main.py
+├── Dockerfile
+├── requirements.txt
+├── cloudbuild.yaml
+├── orchestrator/            ← internal modules
+│   ├── __init__.py
+│   ├── routes/
+│   │   ├── health.py
+│   │   ├── gpt_router.py
+│   │   ├── supabase_router.py
+│   │   ├── vercel_router.py
+│   │   └── pubsub_router.py
+│   └── utils/
+│       ├── browser_agent.py
+│       ├── memory_sync.py
+│       ├── supabase_api.py
+│       └── vercel_api.py
+├── scripts/
+│   ├── build_docker.sh
+│   ├── deploy_cloudrun.sh
+│   └── rehydrate.sh
+└── .env.example

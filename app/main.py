@@ -1,115 +1,128 @@
-import os, json, base64, time, asyncio, traceback
-from typing import Dict, Any, Callable, Awaitable
+import os, json, base64, asyncio
+from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
+import httpx
 
 ROLE = os.getenv("ROLE","SAT")
-WORKERS = int(os.getenv("WORKERS","64"))
-AGENTS = [a.strip() for a in os.getenv("AGENTS","").split(",") if a.strip()]
+PROJECT_ID = os.getenv("PROJECT_ID","")
+REGION = os.getenv("REGION","")
+PUBSUB_TOPIC = os.getenv("PUBSUB_TOPIC","")
+WORKERS = int(os.getenv("WORKERS","32"))
+HEADLESS = os.getenv("HEADLESS","1") == "1"
+PAGE_TIMEOUT = int(float(os.getenv("PAGE_TIMEOUT","35"))*1000)
 
-from agents import harvester_faucet, harvester_scout, harvester_wallet
-from agents.base import api
-
-async def a_faucet(spec): return await harvester_faucet.run(harvester_faucet.HarvestSpec(**spec))
-async def a_wallet(spec):  return await harvester_wallet.run(harvester_wallet.WalletSpec(**spec))
-async def a_scout(spec):   return await harvester_scout.run(harvester_scout.ScoutSpec(**spec))
-async def a_noop(spec):    return {"ok": True}
-
-DEFAULT = {
-  "faucet-a": a_faucet, "faucet-b": a_faucet, "faucet-c": a_faucet,
-  "claimer": a_faucet, "wallet-rotator": a_wallet, "scout": a_scout,
-  "router": a_noop, "planner": a_noop, "manager": a_noop,
-  "supabase": a_noop, "vercel": a_noop, "deployer": a_noop, "guardian": a_noop,
-  "alpha-planner": a_noop, "alpha-router": a_noop, "alpha-governor": a_noop,
-  "alpha-throttle": a_noop, "alpha-identity": a_noop, "alpha-scorer": a_noop,
-  "alpha-auditor": a_noop, "alpha-healer": a_noop,
-}
-REGISTRY = {k:v for k,v in DEFAULT.items() if not AGENTS or k in AGENTS}
-
-class Job(BaseModel):
-    name: str
-    spec: Dict[str, Any] = {}
-    priority: int = 5
-    id: str | None = None
-
-class PQItem:
-    __slots__=("prio","seq","job"); _ctr=0
-    def __init__(self, prio:int, job:Job):
-        PQItem._ctr+=1; self.prio=max(0,min(9,prio)); self.seq=PQItem._ctr; self.job=job
-    def __lt__(self, o): return (self.prio,self.seq) < (o.prio,o.seq)
-
-queue: asyncio.PriorityQueue[PQItem] = asyncio.PriorityQueue()
-
-async def worker(idx:int):
-    while True:
-        item = await queue.get()
-        job = item.job
-        try:
-            fn = REGISTRY.get(job.name)
-            if not fn: raise RuntimeError(f"unknown agent {job.name}")
-            _ = await fn(job.spec)
-            # TODO: persist `_` if needed
-        except Exception as e:
-            print(f"[ERR {idx}] {e}\n{traceback.format_exc()}")
-        finally:
-            queue.task_done()
-
+# Health + Ready
 app = FastAPI(title=f"Infinity Multi-Agent ({ROLE})", version="1.0")
 
-@app.on_event("startup")
-async def startup():
-    for i in range(WORKERS): asyncio.create_task(worker(i))
-    print(f"🤖 {ROLE} up | agents={list(REGISTRY.keys())} | workers={WORKERS}")
-
-@app.on_event("shutdown")
-async def shutdown():
-    try: await api.close()
-    except: pass
+@app.get("/")
+async def root():
+    return {"ok": True, "role": ROLE}
 
 @app.get("/healthz")
 async def healthz():
-    return {"ok": True, "role": ROLE, "agents": list(REGISTRY.keys()), "workers": WORKERS, "queue": queue.qsize(), "ts": time.time()}
+    return {"status":"ok", "role": ROLE}
 
-@app.post("/agents/{name}/run")
-async def run_agent(name: str, spec: Dict[str, Any]):
-    if name not in REGISTRY: raise HTTPException(404, f"unknown agent {name}")
-    try:
-        res = await REGISTRY[name](spec)
-        return {"ok": True, "agent": name, "result": res}
-    except Exception as e:
-        raise HTTPException(500, str(e))
+@app.get("/ready")
+async def ready():
+    # keep it simple for Cloud Run LB
+    return {"ready": True, "role": ROLE}
 
-@app.post("/agents/batch")
-async def batch(payload: Dict[str, Any]):
-    jobs = payload.get("jobs", [])
-    for j in jobs:
-        jb = Job(name=j["name"], spec=j.get("spec", {}), priority=j.get("priority",5), id=j.get("id"))
-        await queue.put(PQItem(jb.priority, jb))
-    return {"ok": True, "queued": len(jobs)}
+# Pub/Sub push (GCP format)
+class PubsubPush(BaseModel):
+    message: Dict[str, Any] = {}
 
 @app.post("/pubsub/push")
-async def pubsub_push(request: Request):
-    env = await request.json()
-    msg = env.get("message", {}); data_b64 = msg.get("data")
-    if not data_b64: return {"ok": True, "note":"no-data"}
-    data = json.loads(base64.b64decode(data_b64).decode("utf-8"))
-    jobs = data if isinstance(data, list) else [data]
-    for j in jobs:
-        jb = Job(name=j["name"], spec=j.get("spec", {}), priority=j.get("priority",5), id=j.get("id"))
-        await queue.put(PQItem(jb.priority, jb))
-    return {"ok": True, "enqueued": len(jobs)}
+async def pubsub_push(payload: PubsubPush):
+    msg = payload.message or {}
+    data_b64 = msg.get("data")
+    body = {}
+    if data_b64:
+        try:
+            body = json.loads(base64.b64decode(data_b64).decode("utf-8"))
+        except Exception as e:
+            raise HTTPException(400, f"bad data: {e}")
+    # route by simple keys
+    name = (body.get("name") or "unknown").lower()
+    spec = body.get("spec") or {}
+    if name in AGENTS:
+        out = await AGENTS[name](spec)
+        return {"ok": True, "agent": name, "result": out}
+    return {"ok": True, "noop": True, "received": body}
 
+# Agents registry
+async def a_noop(spec: Dict[str, Any]): return {"ok": True, "spec": spec}
 
-@app.get("/livez")
-async def livez():
-    return {"ok": True}
+# Minimal faucet that does both an HTTP fetch and (optionally) a Playwright hit.
+async def a_faucet(spec: Dict[str, Any]):
+    results = {"api": [], "headless": []}
+    # Plain HTTP test
+    url = (spec.get("url") or "https://httpbin.org/get")
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.get(url if url.startswith("http") else "https://httpbin.org/get")
+        results["api"].append({"status": r.status_code, "data": r.json() if r.headers.get("content-type","").startswith("application/json") else r.text[:500]})
+    # Optional headless (smoke defaults to off-friendly URL)
+    head_url = spec.get("headless_url","https://example.org")
+    if HEADLESS:
+        try:
+            from playwright.async_api import async_playwright
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                page = await browser.new_page()
+                page.set_default_navigation_timeout(PAGE_TIMEOUT)
+                await page.goto(head_url, wait_until="domcontentloaded")
+                title = await page.title()
+                html = await page.content()
+                await browser.close()
+            results["headless"].append({"title": title, "length": len(html)})
+        except Exception as e:
+            results["headless"].append({"error": str(e)})
+    return {"ok": True, **results}
 
-@app.get("/readyz")
-async def readyz():
-    return {"ok": True, "workers": WORKERS, "agents": list(REGISTRY.keys())}
+# You can add more named agents here
+AGENTS = {
+    "noop": a_noop,
+    "faucet-a": a_faucet,
+    "faucet-b": a_faucet,
+    "faucet-c": a_faucet,
+    "scout": a_faucet
+}
 
-# alias if you want a second path
-@app.get("/health")
-async def health_alias():
-    return await healthz()
+# sync runner
+class BatchPayload(BaseModel):
+    payload: Dict[str, Any]
 
+@app.post("/agents/{name}/run")
+async def run_agent(name: str, payload: Dict[str, Any]):
+    fn = AGENTS.get(name.lower())
+    if not fn: raise HTTPException(404, f"unknown agent: {name}")
+    out = await fn(payload)
+    return {"ok": True, "agent": name, "result": out}
+
+@app.post("/agents/batch")
+async def batch(payload: Dict[str, Dict[str, Any]]):
+    tasks = []
+    for name, spec in payload.items():
+        fn = AGENTS.get(name.lower(), a_noop)
+        tasks.append(fn(spec))
+    out = await asyncio.gather(*tasks, return_exceptions=True)
+    return {"ok": True, "results": out}
+
+# Groq "actions" style chat
+class ChatBody(BaseModel):
+    messages: List[Dict[str, str]]
+    model: Optional[str] = None
+
+@app.post("/actions/chat")
+async def chat(body: ChatBody):
+    api_key = os.getenv("GROQ_API_KEY","")
+    if not api_key: raise HTTPException(500, "GROQ_API_KEY missing")
+    from groq import Groq
+    client = Groq(api_key=api_key)
+    model = body.model or os.getenv("GROQ_MODEL","llama-3.1-70b-versatile")
+    resp = client.chat.completions.create(
+        model=model,
+        messages=body.messages
+    )
+    m = resp.choices[0].message
+    return {"id": resp.id, "model": model, "message": {"role": m.role, "content": m.content}}

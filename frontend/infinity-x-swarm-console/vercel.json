@@ -1,0 +1,4 @@
+{
+  "functions": { "api/**/*": { "runtime": "edge" } },
+  "ignoredBuildStep": "echo ok"
+}
